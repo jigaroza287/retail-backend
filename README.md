@@ -8,3 +8,14 @@ A generic, single-store retail management system.
 - Web: React
 - Mobile: React Native (iOS & Android)
 - Hosting: Render
+
+## ID Generation Strategy
+
+All primary keys are UUIDs generated in application code.
+The database does not generate UUID defaults.
+
+Reason:
+
+- Avoid DB extensions
+- Cloud-provider agnostic
+- Explicit control over identifiers
