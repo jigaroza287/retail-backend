@@ -4,7 +4,6 @@ import dotenv from "dotenv";
 import routes from "./routes";
 
 dotenv.config();
-
 const app = express();
 
 app.use(cors());
@@ -21,5 +20,3 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Backend running on port ${PORT}`);
 });
-
-// Available at your primary URL https://retail-backend-uewv.onrender.com
