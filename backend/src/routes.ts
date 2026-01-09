@@ -1,4 +1,5 @@
 import { Router } from "express";
+import authRoutes from "./modules/auth/auth.routes";
 import catalogRoutes from "./modules/catalog/catalog.routes";
 import inventoryRoutes from "./modules/inventory/inventory.routes";
 import purchasesRoutes from "./modules/purchases/purchases.routes";
@@ -12,5 +13,6 @@ router.use("/inventory", inventoryRoutes);
 router.use("/purchases", purchasesRoutes);
 router.use("/sales", salesRoutes);
 router.use("/reports", reportsRoutes);
+router.use("/auth", authRoutes);
 
 export default router;
