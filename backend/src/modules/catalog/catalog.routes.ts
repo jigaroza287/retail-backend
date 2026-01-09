@@ -1,8 +1,10 @@
 import { Router } from "express";
+import { ROLES } from "../../constants/roles";
+import { authorize } from "../../middlewares/role.middleware";
 import {
-  getCategories,
   createProduct,
   createVariant,
+  getCategories,
   getProducts,
 } from "./catalog.controller";
 
@@ -11,10 +13,14 @@ const router = Router();
 router.get("/categories", getCategories);
 
 // products
-router.post("/products", createProduct);
+router.post("/products", authorize([ROLES.ADMIN, ROLES.STAFF]), createProduct);
 router.get("/products", getProducts);
 
 // variants
-router.post("/products/:productId/variants", createVariant);
+router.post(
+  "/products/:productId/variants",
+  authorize([ROLES.ADMIN, ROLES.STAFF]),
+  createVariant
+);
 
 export default router;

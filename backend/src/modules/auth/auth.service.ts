@@ -1,6 +1,7 @@
-import { pool } from "../../config/db";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import { pool } from "../../config/db";
+import { Role, ROLES } from "../../constants/roles";
 
 export const authenticateUser = async (email: string, password: string) => {
   const query = `
@@ -18,8 +19,12 @@ export const authenticateUser = async (email: string, password: string) => {
   const isValid = await bcrypt.compare(password, user.password);
   if (!isValid) return null;
 
+  if (!Object.values(ROLES).includes(user.role)) {
+    throw new Error("Invalid role assigned to user");
+  }
+
   const token = jwt.sign(
-    { userId: user.id, role: user.role },
+    { userId: user.id, role: user.role as Role },
     process.env.JWT_SECRET as string,
     { expiresIn: "8h" }
   );
