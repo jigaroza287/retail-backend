@@ -1,11 +1,10 @@
 import { Request, Response } from "express";
 import {
   fetchCategories,
+  fetchProductsWithVariants,
   insertProduct,
   insertVariant,
-  fetchProductsWithVariants,
 } from "./catalog.service";
-import { randomUUID } from "crypto";
 
 /**
  * Categories
@@ -33,9 +32,7 @@ export const createProduct = async (req: Request, res: Response) => {
         .json({ message: "name and categoryId are required" });
     }
 
-    const productId = randomUUID();
-
-    await insertProduct(productId, name, categoryId);
+    const productId = await insertProduct(name, categoryId);
 
     res.status(201).json({
       id: productId,
@@ -60,9 +57,7 @@ export const createVariant = async (req: Request, res: Response) => {
       return res.status(400).json({ message: "sku is required" });
     }
 
-    const variantId = randomUUID();
-
-    await insertVariant(variantId, productId, size, color, sku);
+    const variantId = await insertVariant(productId, size, color, sku);
 
     res.status(201).json({
       id: variantId,

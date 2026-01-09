@@ -17,24 +17,21 @@ export const fetchCategories = async () => {
 /**
  * Create Product
  */
-export const insertProduct = async (
-  id: string,
-  name: string,
-  categoryId: string
-) => {
+export const insertProduct = async (name: string, categoryId: string) => {
   const query = `
-    INSERT INTO retail.products (id, name, category_id)
-    VALUES ($1, $2, $3);
+    INSERT INTO retail.products (name, category_id)
+    VALUES ($1, $2)
+    RETURNING id;
   `;
 
-  await pool.query(query, [id, name, categoryId]);
+  const { rows } = await pool.query(query, [name, categoryId]);
+  return rows[0].id;
 };
 
 /**
  * Create Variant
  */
 export const insertVariant = async (
-  id: string,
   productId: string,
   size: string | null,
   color: string | null,
@@ -42,11 +39,13 @@ export const insertVariant = async (
 ) => {
   const query = `
     INSERT INTO retail.product_variants
-      (id, product_id, size, color, sku)
-    VALUES ($1, $2, $3, $4, $5);
+      (product_id, size, color, sku)
+    VALUES ($1, $2, $3, $4);
+    RETURNING id;
   `;
 
-  await pool.query(query, [id, productId, size, color, sku]);
+  const { rows } = await pool.query(query, [productId, size, color, sku]);
+  return rows[0].id;
 };
 
 /**
