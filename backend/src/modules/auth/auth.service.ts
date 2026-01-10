@@ -1,20 +1,17 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { pool } from "../../config/db";
+import { prisma } from "../../config/prisma";
 import { Role, ROLES } from "../../constants/roles";
 
 export const authenticateUser = async (email: string, password: string) => {
-  const query = `
-    SELECT id, password, role
-    FROM retail.users
-    WHERE email = $1
-  `;
-
-  const { rows } = await pool.query(query, [email]);
-
-  if (rows.length === 0) return null;
-
-  const user = rows[0];
+  const user = await prisma.users.findUnique({
+    where: { email },
+    select: {
+      id: true,
+      password: true,
+      role: true,
+    },
+  });
 
   const isValid = await bcrypt.compare(password, user.password);
   if (!isValid) return null;
