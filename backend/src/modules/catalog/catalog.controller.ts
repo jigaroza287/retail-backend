@@ -57,6 +57,10 @@ export const createVariant = async (req: Request, res: Response) => {
       return res.status(400).json({ message: "sku is required" });
     }
 
+    if (!productId || typeof productId !== "string") {
+      return res.status(400).json({ message: "Invalid productId" });
+    }
+
     const variantId = await insertVariant(productId, size, color, sku);
 
     res.status(201).json({

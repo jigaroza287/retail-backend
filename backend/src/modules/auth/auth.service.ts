@@ -3,6 +3,10 @@ import jwt from "jsonwebtoken";
 import { prisma } from "../../config/prisma";
 import { Role, ROLES } from "../../constants/roles";
 
+function isRole(value: string): value is Role {
+  return Object.values(ROLES).includes(value as Role);
+}
+
 export const authenticateUser = async (email: string, password: string) => {
   const user = await prisma.users.findUnique({
     where: { email },
@@ -13,15 +17,19 @@ export const authenticateUser = async (email: string, password: string) => {
     },
   });
 
+  if (!user) {
+    throw new Error("Invalid email or password");
+  }
+
   const isValid = await bcrypt.compare(password, user.password);
   if (!isValid) return null;
 
-  if (!Object.values(ROLES).includes(user.role)) {
+  if (!isRole(user.role)) {
     throw new Error("Invalid role assigned to user");
   }
 
   const token = jwt.sign(
-    { userId: user.id, role: user.role as Role },
+    { userId: user.id, role: user.role },
     process.env.JWT_SECRET as string,
     { expiresIn: "8h" }
   );

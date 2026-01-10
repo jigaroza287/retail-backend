@@ -15,6 +15,10 @@ export const getInventoryByVariant = async (req: Request, res: Response) => {
   try {
     const { variantId } = req.params;
 
+    if (!variantId || typeof variantId !== "string") {
+      return res.status(400).json({ message: "Invalid productId" });
+    }
+
     const inventory = await fetchInventoryForVariant(variantId);
     res.json(inventory);
   } catch (error) {
