@@ -1,0 +1,130 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  schemas  = ["retail"]
+}
+
+model categories {
+  id               String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name             String
+  parent_id        String?      @db.Uuid
+  created_at       DateTime?    @default(now()) @db.Timestamp(6)
+  categories       categories?  @relation("categoriesTocategories", fields: [parent_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  other_categories categories[] @relation("categoriesTocategories")
+  products         products[]
+
+  @@schema("retail")
+}
+
+model customers {
+  id           String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name         String
+  phone        String?
+  created_at   DateTime?      @default(now()) @db.Timestamp(6)
+  sales_orders sales_orders[]
+
+  @@schema("retail")
+}
+
+model distributors {
+  id              String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name            String
+  phone           String?
+  address         String?
+  created_at      DateTime?         @default(now()) @db.Timestamp(6)
+  purchase_orders purchase_orders[]
+
+  @@schema("retail")
+}
+
+model product_variants {
+  id             String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  product_id     String           @db.Uuid
+  size           String?
+  color          String?
+  sku            String           @unique
+  created_at     DateTime?        @default(now()) @db.Timestamp(6)
+  products       products         @relation(fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  purchase_items purchase_items[]
+  sale_items     sale_items[]
+
+  @@schema("retail")
+}
+
+model products {
+  id               String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name             String
+  category_id      String?            @db.Uuid
+  created_at       DateTime?          @default(now()) @db.Timestamp(6)
+  product_variants product_variants[]
+  categories       categories?        @relation(fields: [category_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@schema("retail")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model purchase_items {
+  id                 String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  purchase_order_id  String           @db.Uuid
+  product_variant_id String           @db.Uuid
+  quantity           Int
+  cost_price         Decimal          @db.Decimal
+  product_variants   product_variants @relation(fields: [product_variant_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  purchase_orders    purchase_orders  @relation(fields: [purchase_order_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@schema("retail")
+}
+
+model purchase_orders {
+  id             String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  distributor_id String?          @db.Uuid
+  total_amount   Decimal          @db.Decimal
+  purchased_at   DateTime         @db.Timestamp(6)
+  created_at     DateTime?        @default(now()) @db.Timestamp(6)
+  purchase_items purchase_items[]
+  distributors   distributors?    @relation(fields: [distributor_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@schema("retail")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model sale_items {
+  id                 String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  sales_order_id     String           @db.Uuid
+  product_variant_id String           @db.Uuid
+  quantity           Int
+  selling_price      Decimal          @db.Decimal
+  product_variants   product_variants @relation(fields: [product_variant_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  sales_orders       sales_orders     @relation(fields: [sales_order_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@schema("retail")
+}
+
+model sales_orders {
+  id           String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  customer_id  String?      @db.Uuid
+  total_amount Decimal      @db.Decimal
+  sold_at      DateTime     @db.Timestamp(6)
+  created_at   DateTime?    @default(now()) @db.Timestamp(6)
+  sale_items   sale_items[]
+  customers    customers?   @relation(fields: [customer_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@schema("retail")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model users {
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email      String    @unique
+  password   String
+  role       String
+  is_active  Boolean?  @default(true)
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+
+  @@schema("retail")
+}
