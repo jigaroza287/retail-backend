@@ -1,17 +1,19 @@
 import { pool } from "../../config/db";
+import { prisma } from "../../config/prisma";
 
 /**
  * Categories
  */
 export const fetchCategories = async () => {
-  const query = `
-    SELECT id, name, parent_id
-    FROM retail.categories
-    ORDER BY name;
-  `;
-
-  const { rows } = await pool.query(query);
-  return buildTree(rows);
+  const categories = await prisma.categories.findMany({
+    orderBy: { name: "asc" },
+    select: {
+      id: true,
+      name: true,
+      parent_id: true,
+    },
+  });
+  return buildTree(categories);
 };
 
 /**
