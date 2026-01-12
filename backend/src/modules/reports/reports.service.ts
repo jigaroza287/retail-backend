@@ -1,8 +1,5 @@
 import { pool } from "../../config/db";
 
-/**
- * Overall profit report
- */
 export const fetchProfitReport = async (from: Date, to: Date) => {
   const query = `
     SELECT
@@ -26,9 +23,6 @@ export const fetchProfitReport = async (from: Date, to: Date) => {
   };
 };
 
-/**
- * Product-wise profit report
- */
 export const fetchProductProfitReport = async (from: Date, to: Date) => {
   const query = `
     SELECT

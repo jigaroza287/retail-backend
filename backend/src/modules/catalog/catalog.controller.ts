@@ -7,9 +7,6 @@ import {
   insertVariant,
 } from "./catalog.service";
 
-/**
- * Categories
- */
 export const getCategories = async (_req: Request, res: Response) => {
   try {
     const categories = await fetchCategories();
@@ -20,9 +17,6 @@ export const getCategories = async (_req: Request, res: Response) => {
   }
 };
 
-/**
- * Create Product (Design)
- */
 export const createProduct = async (req: Request, res: Response) => {
   try {
     let name: string | undefined;
@@ -55,9 +49,6 @@ export const createProduct = async (req: Request, res: Response) => {
   }
 };
 
-/**
- * Create Product Variant (SKU)
- */
 export const createVariant = async (req: Request, res: Response) => {
   try {
     const { productId } = req.params;
@@ -85,9 +76,6 @@ export const createVariant = async (req: Request, res: Response) => {
   }
 };
 
-/**
- * Get Products with Variants
- */
 export const getProducts = async (req: Request, res: Response) => {
   try {
     let categoryId: string | undefined;

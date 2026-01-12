@@ -1,9 +1,6 @@
 import { Prisma } from "@prisma/client";
 import { prisma } from "../../config/prisma";
 
-/**
- * Categories
- */
 export const fetchCategories = async () => {
   const categories = await prisma.categories.findMany({
     orderBy: { name: "asc" },
@@ -16,9 +13,6 @@ export const fetchCategories = async () => {
   return buildTree(categories);
 };
 
-/**
- * Create Product
- */
 export const insertProduct = async (name: string, categoryId: string) => {
   return prisma.products.create({
     data: {
@@ -33,9 +27,6 @@ export const insertProduct = async (name: string, categoryId: string) => {
   });
 };
 
-/**
- * Create Variant
- */
 export const insertVariant = async (
   productId: string,
   size: string | null,
@@ -59,9 +50,6 @@ export const insertVariant = async (
   });
 };
 
-/**
- * Fetch products with variants
- */
 export const fetchProductsWithVariants = async (categoryId?: string) => {
   return prisma.products.findMany({
     where: categoryId ? { category_id: categoryId } : undefined,
@@ -73,10 +61,6 @@ export const fetchProductsWithVariants = async (categoryId?: string) => {
     },
   });
 };
-
-/**
- * Fetch products with variants
- */
 
 export async function createProductWithVariant(
   name: string,
@@ -129,30 +113,4 @@ const buildTree = (rows: any[]) => {
   });
 
   return roots;
-};
-
-const groupProducts = (rows: any[]) => {
-  const productsMap = new Map<string, any>();
-
-  rows.forEach((row) => {
-    if (!productsMap.has(row.product_id)) {
-      productsMap.set(row.product_id, {
-        id: row.product_id,
-        name: row.product_name,
-        category: row.category_name,
-        variants: [],
-      });
-    }
-
-    if (row.variant_id) {
-      productsMap.get(row.product_id).variants.push({
-        id: row.variant_id,
-        size: row.size,
-        color: row.color,
-        sku: row.sku,
-      });
-    }
-  });
-
-  return Array.from(productsMap.values());
 };

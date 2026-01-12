@@ -1,9 +1,6 @@
 import { Prisma } from "@prisma/client";
 import { prisma } from "../../config/prisma";
 
-/**
- * Inventory for all variants
- */
 export const fetchInventory = async () => {
   return prisma.$queryRaw<
     { variant_id: string; sku: string; available: number }[]
@@ -25,9 +22,6 @@ export const fetchInventory = async () => {
   `;
 };
 
-/**
- * Inventory for a single variant
- */
 export const fetchInventoryForVariant = async (variantId: string) => {
   return prisma.$queryRaw<
     { variant_id: string; sku: string; available: number }[]
