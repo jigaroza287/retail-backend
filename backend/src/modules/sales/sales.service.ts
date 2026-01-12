@@ -22,7 +22,7 @@ export const createSalesOrder = async (
       data: {
         customer_id: customerId,
         total_amount: totalAmount,
-        sold_at: Date(),
+        sold_at: new Date(),
       },
     });
 

@@ -21,7 +21,7 @@ export const createPurchaseOrder = async (
       data: {
         distributor_id: distributorId,
         total_amount: totalAmount,
-        purchased_at: Date(),
+        purchased_at: new Date(),
       },
     });
 
