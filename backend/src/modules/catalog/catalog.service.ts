@@ -1,3 +1,4 @@
+import { Prisma } from "@prisma/client";
 import { prisma } from "../../config/prisma";
 
 /**
@@ -84,7 +85,7 @@ export async function createProductWithVariant(
   color: string,
   sku: string
 ) {
-  return prisma.$transaction(async (tx) => {
+  return prisma.$transaction(async (tx: Prisma.TransactionClient) => {
     const product = await tx.products.create({
       data: {
         name,
