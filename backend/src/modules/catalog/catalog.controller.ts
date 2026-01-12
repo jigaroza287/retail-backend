@@ -25,21 +25,30 @@ export const getCategories = async (_req: Request, res: Response) => {
  */
 export const createProduct = async (req: Request, res: Response) => {
   try {
-    const { name, categoryId } = req.body;
+    let name: string | undefined;
+    let categoryId: string | undefined;
 
-    if (!name || !categoryId) {
-      return res
-        .status(400)
-        .json({ message: "name and categoryId are required" });
+    try {
+      name = getOptionalStringQuery(req.body.name);
+      if (!name) {
+        return res.status(400).json({ message: "name is required" });
+      }
+    } catch {
+      return res.status(400).json({ message: "Invalid product name" });
     }
 
-    const productId = await insertProduct(name, categoryId);
+    try {
+      categoryId = getOptionalStringQuery(req.body.categoryId);
+      if (!categoryId) {
+        return res.status(400).json({ message: "categoryId is required" });
+      }
+    } catch {
+      return res.status(400).json({ message: "Invalid categoryId" });
+    }
 
-    res.status(201).json({
-      id: productId,
-      name,
-      categoryId,
-    });
+    const product = await insertProduct(name, categoryId);
+
+    res.status(201).json(product);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Failed to create product" });
@@ -54,23 +63,17 @@ export const createVariant = async (req: Request, res: Response) => {
     const { productId } = req.params;
     const { size, color, sku } = req.body;
 
-    if (!sku) {
-      return res.status(400).json({ message: "sku is required" });
-    }
-
     if (!productId || typeof productId !== "string") {
       return res.status(400).json({ message: "Invalid productId" });
     }
 
-    const variantId = await insertVariant(productId, size, color, sku);
+    if (!size || !color || !sku) {
+      return res.status(400).json({ message: "Missing variant fields" });
+    }
 
-    res.status(201).json({
-      id: variantId,
-      productId,
-      size,
-      color,
-      sku,
-    });
+    const variant = await insertVariant(productId, size, color, sku);
+
+    res.status(201).json(variant);
   } catch (error: any) {
     if (error.code === "23505") {
       // unique violation

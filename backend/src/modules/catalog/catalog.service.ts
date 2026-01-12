@@ -1,4 +1,3 @@
-import { pool } from "../../config/db";
 import { prisma } from "../../config/prisma";
 
 /**
@@ -20,14 +19,17 @@ export const fetchCategories = async () => {
  * Create Product
  */
 export const insertProduct = async (name: string, categoryId: string) => {
-  const query = `
-    INSERT INTO retail.products (name, category_id)
-    VALUES ($1, $2)
-    RETURNING id;
-  `;
-
-  const { rows } = await pool.query(query, [name, categoryId]);
-  return rows[0].id;
+  return prisma.products.create({
+    data: {
+      name,
+      category_id: categoryId,
+    },
+    select: {
+      id: true,
+      name: true,
+      category_id: true,
+    },
+  });
 };
 
 /**
@@ -39,15 +41,21 @@ export const insertVariant = async (
   color: string | null,
   sku: string
 ) => {
-  const query = `
-    INSERT INTO retail.product_variants
-      (product_id, size, color, sku)
-    VALUES ($1, $2, $3, $4);
-    RETURNING id;
-  `;
-
-  const { rows } = await pool.query(query, [productId, size, color, sku]);
-  return rows[0].id;
+  return prisma.product_variants.create({
+    data: {
+      product_id: productId,
+      size,
+      color,
+      sku,
+    },
+    select: {
+      id: true,
+      product_id: true,
+      size: true,
+      color: true,
+      sku: true,
+    },
+  });
 };
 
 /**
@@ -64,6 +72,41 @@ export const fetchProductsWithVariants = async (categoryId?: string) => {
     },
   });
 };
+
+/**
+ * Fetch products with variants
+ */
+
+export async function createProductWithVariant(
+  name: string,
+  categoryId: string,
+  size: string,
+  color: string,
+  sku: string
+) {
+  return prisma.$transaction(async (tx) => {
+    const product = await tx.products.create({
+      data: {
+        name,
+        category_id: categoryId,
+      },
+    });
+
+    const variant = await tx.product_variants.create({
+      data: {
+        product_id: product.id,
+        size,
+        color,
+        sku,
+      },
+    });
+
+    return {
+      product,
+      variant,
+    };
+  });
+}
 
 /**
  * Helpers
