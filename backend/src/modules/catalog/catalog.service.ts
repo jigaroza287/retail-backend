@@ -53,24 +53,16 @@ export const insertVariant = async (
 /**
  * Fetch products with variants
  */
-export const fetchProductsWithVariants = async () => {
-  const query = `
-    SELECT
-      p.id AS product_id,
-      p.name AS product_name,
-      c.name AS category_name,
-      v.id AS variant_id,
-      v.size,
-      v.color,
-      v.sku
-    FROM retail.products p
-    LEFT JOIN retail.categories c ON p.category_id = c.id
-    LEFT JOIN retail.product_variants v ON p.id = v.product_id
-    ORDER BY p.name;
-  `;
-
-  const { rows } = await pool.query(query);
-  return groupProducts(rows);
+export const fetchProductsWithVariants = async (category_id?: string) => {
+  return prisma.products.findMany({
+    where: category_id ? { category_id } : undefined,
+    select: {
+      id: true,
+      name: true,
+      category_id: true,
+      product_variants: true,
+    },
+  });
 };
 
 /**

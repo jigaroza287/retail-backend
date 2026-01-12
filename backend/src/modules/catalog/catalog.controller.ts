@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import { getOptionalStringQuery } from "../../utils/request";
 import {
   fetchCategories,
   fetchProductsWithVariants,
@@ -84,9 +85,17 @@ export const createVariant = async (req: Request, res: Response) => {
 /**
  * Get Products with Variants
  */
-export const getProducts = async (_req: Request, res: Response) => {
+export const getProducts = async (req: Request, res: Response) => {
   try {
-    const products = await fetchProductsWithVariants();
+    let categoryId: string | undefined;
+
+    try {
+      categoryId = getOptionalStringQuery(req.query.categoryId);
+    } catch {
+      return res.status(400).json({ message: "Invalid categoryId" });
+    }
+
+    const products = await fetchProductsWithVariants(categoryId);
     res.json(products);
   } catch (error) {
     console.error(error);
