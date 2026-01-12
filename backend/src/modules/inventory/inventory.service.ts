@@ -1,16 +1,20 @@
 import { Prisma } from "@prisma/client";
-import { pool } from "../../config/db";
+import { prisma } from "../../config/prisma";
 
 /**
  * Inventory for all variants
  */
 export const fetchInventory = async () => {
-  const query = `
+  return prisma.$queryRaw<
+    { variant_id: string; sku: string; available: number }[]
+  >`
     SELECT
       pv.id AS variant_id,
       pv.sku,
-      COALESCE(SUM(pi.quantity), 0) -
-      COALESCE(SUM(si.quantity), 0) AS available
+      (
+        COALESCE(SUM(pi.quantity), 0) -
+        COALESCE(SUM(si.quantity), 0)
+      )::INT AS available
     FROM retail.product_variants pv
     LEFT JOIN retail.purchase_items pi
       ON pv.id = pi.product_variant_id
@@ -19,32 +23,30 @@ export const fetchInventory = async () => {
     GROUP BY pv.id, pv.sku
     ORDER BY pv.sku;
   `;
-
-  const { rows } = await pool.query(query);
-  return rows;
 };
 
 /**
  * Inventory for a single variant
  */
 export const fetchInventoryForVariant = async (variantId: string) => {
-  const query = `
+  return prisma.$queryRaw<
+    { variant_id: string; sku: string; available: number }[]
+  >`
     SELECT
       pv.id AS variant_id,
       pv.sku,
-      COALESCE(SUM(pi.quantity), 0) -
-      COALESCE(SUM(si.quantity), 0) AS available
+      (
+        COALESCE(SUM(pi.quantity), 0) -
+        COALESCE(SUM(si.quantity), 0)
+      )::INT AS available
     FROM retail.product_variants pv
     LEFT JOIN retail.purchase_items pi
       ON pv.id = pi.product_variant_id
     LEFT JOIN retail.sale_items si
       ON pv.id = si.product_variant_id
-    WHERE pv.id = $1
+    WHERE pv.id = ${variantId}
     GROUP BY pv.id, pv.sku;
   `;
-
-  const { rows } = await pool.query(query, [variantId]);
-  return rows[0] ?? { variantId, available: 0 };
 };
 
 async function getAvailableStock(
