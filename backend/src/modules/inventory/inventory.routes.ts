@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { ROLES } from "../../constants/roles";
+import { authenticate } from "../../middlewares/auth.middleware";
 import { authorize } from "../../middlewares/role.middleware";
 import { getInventory, getInventoryByVariant } from "./inventory.controller";
 
@@ -7,6 +8,7 @@ const router = Router();
 
 router.get(
   "/",
+  authenticate,
   authorize([ROLES.ADMIN, ROLES.STAFF, ROLES.VIEWER]),
   getInventory
 );
