@@ -53,9 +53,9 @@ export const insertVariant = async (
 /**
  * Fetch products with variants
  */
-export const fetchProductsWithVariants = async (category_id?: string) => {
+export const fetchProductsWithVariants = async (categoryId?: string) => {
   return prisma.products.findMany({
-    where: category_id ? { category_id } : undefined,
+    where: categoryId ? { category_id: categoryId } : undefined,
     select: {
       id: true,
       name: true,
