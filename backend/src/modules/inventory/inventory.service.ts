@@ -90,7 +90,7 @@ export async function decreaseStock(
   const available = await getAvailableStock(tx, variantId);
 
   if (available < quantity) {
-    throw new Error("Insufficient stock");
+    throw new Error("INSUFFICIENT_STOCK");
   }
 
   return tx.sale_items.create({
