@@ -1,6 +1,16 @@
 import { Prisma } from "@prisma/client";
 import { prisma } from "../../config/prisma";
 
+type CategoryRow = {
+  id: string;
+  parent_id: string | null;
+  name: string;
+};
+
+type CategoryNode = CategoryRow & {
+  children: CategoryNode[];
+};
+
 export const fetchCategories = async () => {
   const categories = await prisma.categories.findMany({
     orderBy: { name: "asc" },
@@ -96,9 +106,9 @@ export async function createProductWithVariant(
 /**
  * Helpers
  */
-const buildTree = (rows: any[]) => {
+const buildTree = (rows: CategoryRow[]): CategoryNode[] => {
   const map = new Map();
-  const roots: any[] = [];
+  const roots: CategoryNode[] = [];
 
   rows.forEach((row) => {
     map.set(row.id, { ...row, children: [] });
