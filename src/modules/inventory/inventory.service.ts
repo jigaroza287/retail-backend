@@ -1,5 +1,6 @@
 import { Prisma } from "@prisma/client";
 import { prisma } from "../../config/prisma";
+import { InsufficientStockError } from "../../utils/apiError";
 
 export const fetchInventory = async () => {
   return prisma.$queryRaw<
@@ -90,7 +91,7 @@ export async function decreaseStock(
   const available = await getAvailableStock(tx, variantId);
 
   if (available < quantity) {
-    throw new Error("INSUFFICIENT_STOCK");
+    throw new InsufficientStockError();
   }
 
   return tx.sale_items.create({

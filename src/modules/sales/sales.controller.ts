@@ -1,4 +1,6 @@
 import { Request, Response } from "express";
+import { ApiError } from "../../utils/apiError";
+import { mapDbError } from "../../utils/dbErrorMapper";
 import { createSalesOrder } from "./sales.service";
 
 export const createSale = async (req: Request, res: Response) => {
@@ -11,12 +13,13 @@ export const createSale = async (req: Request, res: Response) => {
 
     const sale = await createSalesOrder(customerId, items);
     res.status(201).json(sale);
-  } catch (error: any) {
-    if (error.code === "INSUFFICIENT_STOCK") {
-      return res.status(409).json({ message: error.message });
+  } catch (error: unknown) {
+    if (error instanceof ApiError) {
+      return res.status(error.statusCode).json({ message: error.message });
     }
 
     console.error(error);
-    res.status(500).json({ message: "Failed to create sale" });
+    const apiError = mapDbError(error, "Failed to create sale");
+    return res.status(apiError.statusCode).json({ message: apiError.message });
   }
 };

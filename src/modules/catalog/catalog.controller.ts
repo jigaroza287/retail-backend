@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import { mapDbError } from "../../utils/dbErrorMapper";
 import { getOptionalStringQuery } from "../../utils/request";
 import {
   fetchCategories,
@@ -44,8 +45,8 @@ export const createProduct = async (req: Request, res: Response) => {
 
     res.status(201).json(product);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Failed to create product" });
+    const apiError = mapDbError(error, "Failed to create product");
+    return res.status(apiError.statusCode).json({ message: apiError.message });
   }
 };
 
@@ -65,14 +66,9 @@ export const createVariant = async (req: Request, res: Response) => {
     const variant = await insertVariant(productId, size, color, sku);
 
     res.status(201).json(variant);
-  } catch (error: any) {
-    if (error.code === "23505") {
-      // unique violation
-      return res.status(409).json({ message: "SKU already exists" });
-    }
-
-    console.error(error);
-    res.status(500).json({ message: "Failed to create variant" });
+  } catch (error: unknown) {
+    const apiError = mapDbError(error, "Failed to create variant");
+    return res.status(apiError.statusCode).json({ message: apiError.message });
   }
 };
 
