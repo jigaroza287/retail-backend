@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { fetchInventory, fetchInventoryForVariant } from "./inventory.service";
+import { getOptionalStringQuery } from "../../utils/request";
 
 export const getInventory = async (_req: Request, res: Response) => {
   try {
@@ -13,9 +14,14 @@ export const getInventory = async (_req: Request, res: Response) => {
 
 export const getInventoryByVariant = async (req: Request, res: Response) => {
   try {
-    const { variantId } = req.params;
+    let variantId: string | undefined;
 
-    if (!variantId || typeof variantId !== "string") {
+    try {
+      variantId = getOptionalStringQuery(req.body.name);
+      if (!variantId) {
+        return res.status(400).json({ message: "variantId is required" });
+      }
+    } catch {
       return res.status(400).json({ message: "Invalid productId" });
     }
 
