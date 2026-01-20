@@ -1,15 +1,25 @@
 import { Request, Response } from "express";
 import {
-  listAdminProducts,
-  getAdminProductById,
   createAdminProduct,
-  updateAdminProduct,
   deleteAdminProduct,
+  getAdminProductById,
+  listAdminProducts,
+  ProductFilters,
+  updateAdminProduct,
 } from "./adminProducts.service";
 
-export const getProductsAdmin = async (_req: Request, res: Response) => {
-  const products = await listAdminProducts();
-  return res.json({ data: products });
+export const getProductsAdmin = async (req: Request, res: Response) => {
+  const filters: ProductFilters = {
+    search: req.query.search as string | undefined,
+    categoryId: req.query.categoryId as string | undefined,
+    minStock: req.query.minStock ? Number(req.query.minStock) : undefined,
+    maxStock: req.query.maxStock ? Number(req.query.maxStock) : undefined,
+    sortBy: req.query.sortBy as ProductFilters["sortBy"],
+    sortOrder: req.query.sortOrder as ProductFilters["sortOrder"],
+  };
+
+  const products = await listAdminProducts(filters);
+  res.json({ data: products });
 };
 
 export const getProductAdmin = async (req: Request, res: Response) => {

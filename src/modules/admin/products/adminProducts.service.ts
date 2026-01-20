@@ -30,18 +30,46 @@ export const computeAvailableStock = async (
   return result.length > 0 ? Number(result[0].available) : 0;
 };
 
-export const listAdminProducts = async (): Promise<AdminProduct[]> => {
+export type ProductFilters = {
+  search?: string;
+  categoryId?: string;
+  minStock?: number;
+  maxStock?: number;
+  sortBy?: "name" | "createdAt" | "sku";
+  sortOrder?: "asc" | "desc";
+};
+
+export const listAdminProducts = async (
+  filters: ProductFilters
+): Promise<AdminProduct[]> => {
+  const { search, categoryId, minStock, maxStock, sortBy, sortOrder } = filters;
+
   const variants = await prisma.product_variants.findMany({
     include: {
       products: true,
+      sale_items: true,
     },
-    orderBy: { created_at: "desc" },
+    where: {
+      products: {
+        name: search ? { contains: search, mode: "insensitive" } : undefined,
+        category_id: categoryId ?? undefined,
+      },
+    },
+    orderBy:
+      sortBy && sortOrder
+        ? { [sortBy === "createdAt" ? "created_at" : sortBy]: sortOrder }
+        : { created_at: "desc" },
   });
 
   const result: AdminProduct[] = [];
 
   for (const v of variants) {
     const stock = await computeAvailableStock(v.id);
+
+    if (minStock !== undefined && stock < minStock) continue;
+    if (maxStock !== undefined && stock > maxStock) continue;
+
+    const sellingPrice = (await getLatestSellingPrice(v.id)) ?? 0;
 
     result.push({
       productId: v.product_id,
@@ -51,7 +79,7 @@ export const listAdminProducts = async (): Promise<AdminProduct[]> => {
       sku: v.sku,
       size: v.size,
       color: v.color,
-      sellingPrice: 0, // placeholder
+      sellingPrice,
       availableStock: stock,
       createdAt: v.created_at,
     });
@@ -164,3 +192,16 @@ export const deleteAdminProduct = async (variantId: string) => {
     where: { id: variantId },
   });
 };
+
+export async function getLatestSellingPrice(
+  variantId: string
+): Promise<number | null> {
+  const lastSale = await prisma.sale_items.findFirst({
+    where: { product_variant_id: variantId },
+    orderBy: { sales_orders: { sold_at: "desc" } },
+    include: { sales_orders: true },
+  });
+
+  if (!lastSale) return null;
+  return Number(lastSale.selling_price);
+}
