@@ -1,5 +1,4 @@
 import { prisma } from "../../../config/prisma";
-import { getAvailableStock } from "../../inventory/inventory.service";
 
 export type AdminProduct = {
   productId: string;
@@ -14,6 +13,23 @@ export type AdminProduct = {
   createdAt: Date | null;
 };
 
+export const computeAvailableStock = async (
+  variantId: string
+): Promise<number> => {
+  const result = await prisma.$queryRaw<{ available: number }[]>`
+    SELECT
+      COALESCE(SUM(pi.quantity), 0) -
+      COALESCE(SUM(si.quantity), 0) AS available
+    FROM retail.product_variants pv
+    LEFT JOIN retail.purchase_items pi ON pv.id = pi.product_variant_id
+    LEFT JOIN retail.sale_items si ON pv.id = si.product_variant_id
+    WHERE pv.id = CAST(${variantId} AS uuid)
+    GROUP BY pv.id;
+  `;
+
+  return result.length > 0 ? Number(result[0].available) : 0;
+};
+
 export const listAdminProducts = async (): Promise<AdminProduct[]> => {
   const variants = await prisma.product_variants.findMany({
     include: {
@@ -25,7 +41,7 @@ export const listAdminProducts = async (): Promise<AdminProduct[]> => {
   const result: AdminProduct[] = [];
 
   for (const v of variants) {
-    const stock = await getAvailableStock(prisma, v.id);
+    const stock = await computeAvailableStock(v.id);
 
     result.push({
       productId: v.product_id,
@@ -56,7 +72,7 @@ export const getAdminProductById = async (
 
   if (!v) return null;
 
-  const stock = await getAvailableStock(prisma, v.id);
+  const stock = await computeAvailableStock(v.id);
 
   return {
     productId: v.product_id,
