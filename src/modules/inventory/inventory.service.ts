@@ -2,6 +2,8 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "../../config/prisma";
 import { InsufficientStockError } from "../../utils/apiError";
 
+type PrismaClientOrTx = Prisma.TransactionClient | typeof prisma;
+
 export const fetchInventory = async () => {
   return prisma.$queryRaw<
     { variant_id: string; sku: string; available: number }[]
@@ -44,11 +46,11 @@ export const fetchInventoryForVariant = async (variantId: string) => {
   `;
 };
 
-async function getAvailableStock(
-  tx: Prisma.TransactionClient,
+export async function getAvailableStock(
+  db: PrismaClientOrTx,
   variantId: string
 ): Promise<number> {
-  const [result] = await tx.$queryRaw<{ available: number }[]>`
+  const result = await db.$queryRaw<{ available: number }[]>`
     SELECT
       COALESCE(SUM(pi.quantity), 0) -
       COALESCE(SUM(si.quantity), 0) AS available
@@ -61,7 +63,7 @@ async function getAvailableStock(
     GROUP BY pv.id
   `;
 
-  return result?.available ?? 0;
+  return result[0]?.available ?? 0;
 }
 
 export async function increaseStock(
