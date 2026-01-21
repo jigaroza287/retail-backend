@@ -46,7 +46,7 @@ export const fetchInventoryForVariant = async (variantId: string) => {
 
 async function getAvailableStock(
   tx: Prisma.TransactionClient,
-  variantId: string
+  variantId: string,
 ): Promise<number> {
   const [result] = await tx.$queryRaw<{ available: number }[]>`
     SELECT
@@ -69,7 +69,7 @@ export async function increaseStock(
   variantId: string,
   quantity: number,
   costPrice: number,
-  purchaseOrderId: string
+  purchaseOrderId: string,
 ) {
   return tx.purchase_items.create({
     data: {
@@ -86,7 +86,7 @@ export async function decreaseStock(
   variantId: string,
   quantity: number,
   unitPrice: number,
-  saleOrderId: string
+  saleOrderId: string,
 ) {
   const available = await getAvailableStock(tx, variantId);
 
@@ -102,4 +102,29 @@ export async function decreaseStock(
       selling_price: unitPrice,
     },
   });
+}
+
+export async function revertSaleItems(
+  tx: Prisma.TransactionClient,
+  orderId: string,
+) {
+  const items = await tx.sale_items.findMany({
+    where: { sales_order_id: orderId },
+    select: {
+      product_variant_id: true,
+      quantity: true,
+      selling_price: true,
+    },
+  });
+
+  for (const item of items) {
+    await tx.sale_items.create({
+      data: {
+        sales_order_id: orderId,
+        product_variant_id: item.product_variant_id,
+        quantity: -item.quantity, // negative = revert sale
+        selling_price: item.selling_price,
+      },
+    });
+  }
 }
