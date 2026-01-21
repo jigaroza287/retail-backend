@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import { ApiError } from "../../../utils/apiError";
 import {
   fetchOrderByIdAdmin,
   fetchOrdersAdmin,
@@ -46,6 +47,12 @@ export const updateOrderStatusAdmin = async (req: Request, res: Response) => {
     return res.status(400).json({ message: "Order id is required" });
   }
 
-  const updated = await updateAdminOrderStatus(id, status);
-  res.json(updated);
+  try {
+    const updated = await updateAdminOrderStatus(id, status);
+    return res.json(updated);
+  } catch (error: unknown) {
+    if (error instanceof ApiError) {
+      return res.status(error.statusCode).json({ message: error.message });
+    }
+  }
 };

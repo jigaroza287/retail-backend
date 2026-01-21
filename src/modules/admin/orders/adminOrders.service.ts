@@ -1,4 +1,7 @@
 import { prisma } from "../../../config/prisma";
+import { OrderStatus } from "../../../constants/orderStatus";
+import { ApiError } from "../../../utils/apiError";
+import { canTransition } from "../../../utils/orderStatus";
 import { AdminOrder } from "./adminOrders.types";
 
 export type OrderFilters = {
@@ -107,9 +110,28 @@ export async function fetchOrderByIdAdmin(
   };
 }
 
-export async function updateAdminOrderStatus(id: string, status: string) {
+export async function updateAdminOrderStatus(
+  id: string,
+  newStatus: OrderStatus,
+) {
+  const order = await prisma.sales_orders.findUnique({
+    where: { id },
+    select: { status: true },
+  });
+
+  if (!order) throw new Error("ORDER_NOT_FOUND");
+
+  if (!canTransition(order.status as OrderStatus, newStatus)) {
+    const error: ApiError = new ApiError(
+      `Invalid transition: ${order.status} → ${newStatus}`,
+      500,
+      "INVALID_STATUS_TRANSITION",
+    );
+    throw error;
+  }
+
   return prisma.sales_orders.update({
     where: { id },
-    data: { status },
+    data: { status: newStatus },
   });
 }
