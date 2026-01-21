@@ -2,12 +2,12 @@ import { Request, Response } from "express";
 import {
   createCategoryAdmin,
   deleteCategoryAdmin,
-  getAllCategoriesAdmin,
+  fetchCategoriesAdmin,
   updateCategoryAdmin,
 } from "./adminCategories.service";
 
 export const getCategoriesAdmin = async (_req: Request, res: Response) => {
-  const categories = await getAllCategoriesAdmin();
+  const categories = await fetchCategoriesAdmin();
   return res.json({ data: categories });
 };
 
