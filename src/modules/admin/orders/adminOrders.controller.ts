@@ -40,19 +40,24 @@ export const getOrderAdmin = async (req: Request, res: Response) => {
 };
 
 export const updateOrderStatusAdmin = async (req: Request, res: Response) => {
-  const { id } = req.params;
-  const { status } = req.body;
-
-  if (!id || typeof id !== "string") {
-    return res.status(400).json({ message: "Order id is required" });
-  }
-
   try {
+    const { status } = req.body;
+    const { id } = req.params;
+
+    if (!id || typeof id !== "string") {
+      return res.status(400).json({ message: "Order id is required" });
+    }
+
+    if (!status) {
+      return res.status(400).json({ message: "Missing status" });
+    }
     const updated = await updateAdminOrderStatus(id, status);
     return res.json(updated);
   } catch (error: unknown) {
     if (error instanceof ApiError) {
       return res.status(error.statusCode).json({ message: error.message });
     }
+    console.error(error);
+    return res.status(500).json({ message: "Failed to update order status" });
   }
 };
