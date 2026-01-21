@@ -109,7 +109,7 @@ model sales_orders {
   customer_id  String?      @db.Uuid
   total_amount Decimal      @db.Decimal
   sold_at      DateTime     @db.Timestamp(6)
-  status       String       @default("COMPLETED")
+  status       String       @default("confirmed")
   created_at   DateTime?    @default(now()) @db.Timestamp(6)
   sale_items   sale_items[]
   customers    customers?   @relation(fields: [customer_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
