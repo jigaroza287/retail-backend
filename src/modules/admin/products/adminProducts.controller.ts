@@ -2,8 +2,8 @@ import { Request, Response } from "express";
 import {
   createAdminProduct,
   deleteAdminProduct,
-  getAdminProductById,
-  listAdminProducts,
+  fetchProductByIdAdmin,
+  fetchProductsAdmin,
   ProductFilters,
   updateAdminProduct,
 } from "./adminProducts.service";
@@ -18,7 +18,8 @@ export const getProductsAdmin = async (req: Request, res: Response) => {
     sortOrder: req.query.sortOrder as ProductFilters["sortOrder"],
   };
 
-  const products = await listAdminProducts(filters);
+  const products = await fetchProductsAdmin;
+  filters;
   res.json({ data: products });
 };
 
@@ -29,7 +30,7 @@ export const getProductAdmin = async (req: Request, res: Response) => {
     return res.status(400).json({ message: "Category id is required" });
   }
 
-  const product = await getAdminProductById(id);
+  const product = await fetchProductByIdAdmin(id);
 
   if (!product) {
     return res.status(404).json({ message: "Product not found" });

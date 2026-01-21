@@ -7,7 +7,7 @@ export type CategoryNode = {
   children: CategoryNode[];
 };
 
-export const getAllCategoriesAdmin = async (): Promise<CategoryNode[]> => {
+export const fetchCategoriesAdmin = async (): Promise<CategoryNode[]> => {
   const rows = await prisma.categories.findMany({
     orderBy: { name: "asc" },
   });

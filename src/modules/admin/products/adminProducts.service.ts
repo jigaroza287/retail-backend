@@ -39,7 +39,7 @@ export type ProductFilters = {
   sortOrder?: "asc" | "desc";
 };
 
-export const listAdminProducts = async (
+export const fetchProductsAdmin = async (
   filters: ProductFilters
 ): Promise<AdminProduct[]> => {
   const { search, categoryId, minStock, maxStock, sortBy, sortOrder } = filters;
@@ -69,7 +69,7 @@ export const listAdminProducts = async (
     if (minStock !== undefined && stock < minStock) continue;
     if (maxStock !== undefined && stock > maxStock) continue;
 
-    const sellingPrice = (await getLatestSellingPrice(v.id)) ?? 0;
+    const sellingPrice = (await fetchLatestSellingPrice(v.id)) ?? 0;
 
     result.push({
       productId: v.product_id,
@@ -88,7 +88,7 @@ export const listAdminProducts = async (
   return result;
 };
 
-export const getAdminProductById = async (
+export const fetchProductByIdAdmin = async (
   variantId: string
 ): Promise<AdminProduct | null> => {
   const v = await prisma.product_variants.findUnique({
@@ -193,7 +193,7 @@ export const deleteAdminProduct = async (variantId: string) => {
   });
 };
 
-export async function getLatestSellingPrice(
+export async function fetchLatestSellingPrice(
   variantId: string
 ): Promise<number | null> {
   const lastSale = await prisma.sale_items.findFirst({
