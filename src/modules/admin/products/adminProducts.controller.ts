@@ -12,13 +12,11 @@ export const getProductsAdmin = async (req: Request, res: Response) => {
   const filters: ProductFilters = {
     search: req.query.search as string | undefined,
     categoryId: req.query.categoryId as string | undefined,
-    minStock: req.query.minStock ? Number(req.query.minStock) : undefined,
-    maxStock: req.query.maxStock ? Number(req.query.maxStock) : undefined,
     sortBy: req.query.sortBy as ProductFilters["sortBy"],
     sortOrder: req.query.sortOrder as ProductFilters["sortOrder"],
   };
 
-  const products = await fetchProductsAdmin;
+  const products = await fetchProductsAdmin(filters);
   filters;
   res.json({ data: products });
 };

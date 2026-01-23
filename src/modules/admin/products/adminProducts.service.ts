@@ -1,6 +1,14 @@
 import { prisma } from "../../../config/prisma";
 
 export type AdminProduct = {
+  id: string;
+  name: string;
+  categoryName: string;
+  variantCount: number;
+  createdAt: Date | null;
+};
+
+export type AdminProductVariant = {
   productId: string;
   variantId: string;
   name: string;
@@ -14,7 +22,7 @@ export type AdminProduct = {
 };
 
 export const computeAvailableStock = async (
-  variantId: string
+  variantId: string,
 ): Promise<number> => {
   const result = await prisma.$queryRaw<{ available: number }[]>`
     SELECT
@@ -33,26 +41,32 @@ export const computeAvailableStock = async (
 export type ProductFilters = {
   search?: string;
   categoryId?: string;
-  minStock?: number;
-  maxStock?: number;
   sortBy?: "name" | "createdAt" | "sku";
   sortOrder?: "asc" | "desc";
 };
 
 export const fetchProductsAdmin = async (
-  filters: ProductFilters
+  filters: ProductFilters,
 ): Promise<AdminProduct[]> => {
-  const { search, categoryId, minStock, maxStock, sortBy, sortOrder } = filters;
+  const { search, categoryId, sortBy, sortOrder } = filters;
 
-  const variants = await prisma.product_variants.findMany({
-    include: {
-      products: true,
-      sale_items: true,
-    },
+  const products = await prisma.products.findMany({
     where: {
-      products: {
-        name: search ? { contains: search, mode: "insensitive" } : undefined,
-        category_id: categoryId ?? undefined,
+      name: search ? { contains: search, mode: "insensitive" } : undefined,
+      category_id: categoryId ?? undefined,
+    },
+
+    select: {
+      id: true,
+      name: true,
+      created_at: true,
+      categories: {
+        select: { name: true },
+      },
+      _count: {
+        select: {
+          product_variants: true,
+        },
       },
     },
     orderBy:
@@ -63,25 +77,13 @@ export const fetchProductsAdmin = async (
 
   const result: AdminProduct[] = [];
 
-  for (const v of variants) {
-    const stock = await computeAvailableStock(v.id);
-
-    if (minStock !== undefined && stock < minStock) continue;
-    if (maxStock !== undefined && stock > maxStock) continue;
-
-    const sellingPrice = (await fetchLatestSellingPrice(v.id)) ?? 0;
-
+  for (const product of products) {
     result.push({
-      productId: v.product_id,
-      variantId: v.id,
-      name: v.products.name,
-      categoryId: v.products.category_id,
-      sku: v.sku,
-      size: v.size,
-      color: v.color,
-      sellingPrice,
-      availableStock: stock,
-      createdAt: v.created_at,
+      id: product.id,
+      name: product.name,
+      categoryName: product.categories?.name ?? "",
+      variantCount: product._count.product_variants,
+      createdAt: product.created_at,
     });
   }
 
@@ -89,8 +91,8 @@ export const fetchProductsAdmin = async (
 };
 
 export const fetchProductByIdAdmin = async (
-  variantId: string
-): Promise<AdminProduct | null> => {
+  variantId: string,
+): Promise<AdminProductVariant | null> => {
   const v = await prisma.product_variants.findUnique({
     where: { id: variantId },
     include: {
@@ -165,7 +167,7 @@ export const updateAdminProduct = async (
     size?: string;
     color?: string;
     sku: string;
-  }
+  },
 ) => {
   const variant = await prisma.product_variants.update({
     where: { id: variantId },
@@ -194,7 +196,7 @@ export const deleteAdminProduct = async (variantId: string) => {
 };
 
 export async function fetchLatestSellingPrice(
-  variantId: string
+  variantId: string,
 ): Promise<number | null> {
   const lastSale = await prisma.sale_items.findFirst({
     where: { product_variant_id: variantId },
