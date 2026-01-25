@@ -1,13 +1,13 @@
 import { Router } from "express";
+import { ROLES } from "../../../constants/roles";
 import { authenticate } from "../../../middlewares/auth.middleware";
 import { authorize } from "../../../middlewares/role.middleware";
-import { ROLES } from "../../../constants/roles";
 import {
-  getProductsAdmin,
-  getProductAdmin,
   createProductAdmin,
-  updateProductAdmin,
   deleteProductAdmin,
+  getProductAdmin,
+  getProductsAdmin,
+  updateProductAdmin,
 } from "./adminProducts.controller";
 
 const router = Router();
@@ -20,7 +20,7 @@ router.delete(
   "/:id",
   authenticate,
   authorize([ROLES.ADMIN]),
-  deleteProductAdmin
+  deleteProductAdmin,
 );
 
 export default router;

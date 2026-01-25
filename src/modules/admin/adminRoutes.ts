@@ -2,8 +2,8 @@ import { Router } from "express";
 
 import adminAuthRoutes from "./auth/adminAuth.routes";
 import adminCategoriesRoutes from "./categories/adminCategories.routes";
-import adminProductsRoutes from "./products/adminProducts.routes";
 import adminOrdersRoutes from "./orders/adminOrders.routes";
+import adminProductsRoutes from "./products/adminProducts.routes";
 import adminUsersRoutes from "./users/adminUsers.routes";
 // import adminDashboardRoutes from "./dashboard/adminDashboard.routes";
 
