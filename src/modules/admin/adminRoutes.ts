@@ -9,7 +9,6 @@ import adminUsersRoutes from "./users/adminUsers.routes";
 
 const router = Router();
 
-// Mount all admin modules
 router.use("/auth", adminAuthRoutes);
 router.use("/categories", adminCategoriesRoutes);
 router.use("/products", adminProductsRoutes);
